@@ -63,8 +63,8 @@ def get_args():
         "-c", "--corr",
         dest="corr_type",
         type=str,
-        default="normal",
-        help="Type of correction")
+        default="2D",
+        help="Type of map, 2D or 3D")
     return parser.parse_args()
 
 args        = get_args()
@@ -288,13 +288,13 @@ def apply_window_cuts(reco, windows = [(0.45, 0.65), (1.4, 1.8), (2.2, 3)]):
 files = sorted(glob.glob(data_path + '*'), key=lambda x: (x.split('/')[-2], int(x.split('/')[-1].split('_')[2])))
 
 # Energy correction
-if corr_type == "normal":
+if corr_type == "2D":
     maps = read_maps(map_path)
 
     get_coef  = apply_all_correction(maps
                                      , apply_temp = False
                                      , norm_strat = NormStrategy.kr)
-if corr_type == "new":
+if corr_type == "3D":
     get_coef = get_corr(map_path)
 
 
