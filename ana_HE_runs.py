@@ -39,11 +39,6 @@ def get_args():
         default=3,
         help="Number of dimensions for clustering algorithm")
     parser.add_argument(
-        "-w", "--wf",
-        dest="wf_selection",
-        action='store_true',
-        help="Pass if you want the script to perform cuts + select WF. If not passed, only saves summary")
-    parser.add_argument(
         "-s", "--save",
         dest="save_name",
         type=str,
@@ -231,7 +226,7 @@ def get_corr(filename):
     meta  = pd.read_hdf(filename, "/mapmeta")
     dtxy_map   = krmap.loc[:, list("zxy")].values
     factor_map = krmap.factor.values
-    def corr(dt, x, y, method="nearest"):
+    def corr(x, y, dt, t, method="nearest"):
         dtxy_data   = np.stack([dt, x, y], axis=1)
         factor_data = griddata(dtxy_map, factor_map, dtxy_data, method=method)
         return factor_data
@@ -323,7 +318,7 @@ for i, f in enumerate(files):
     # drop hits and redistribute energy
     reco = reco.groupby(['event', 'npeak'], group_keys=False).apply(dropper)
     # correct energy and create summary
-    reco_summary = create_hits_summary(reco, get_coef, dropper, f)
+    reco_summary = create_hits_summary(reco, get_coef, f)
         
     dst.to_hdf (save_path_summary, key = 'DST/Events', mode = 'a', append= True, complib="zlib", complevel=4)
     reco_summary.to_hdf(save_path_summary, key = 'RECO/Events_summary', mode = 'a', append= True, complib="zlib", complevel=4)
