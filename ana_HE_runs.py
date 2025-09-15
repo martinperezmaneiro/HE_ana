@@ -27,6 +27,12 @@ def get_args():
         required=True,
         help="Run number to analyse, e.g. 15107")
     parser.add_argument(
+        "-a", "--a",
+        dest="ana_folder",
+        type=str,
+        default="HE_ana_runs",
+        help="Folder to save processed runs")
+    parser.add_argument(
         "-m", "--map",
         dest="map_name",
         type=str,
@@ -62,15 +68,23 @@ def get_args():
         type=str,
         default="2D",
         help="Type of map, 2D or 3D")
+    parser.add_argument(
+        "-q", "--qcut",
+        dest="q_thr",
+        type=float,
+        default=0,
+        help="Q cut for the SiPMs")
     return parser.parse_args()
 
 args        = get_args()
-run_number  = args.run_number #15589 
+run_number  = args.run_number #15589
+ana_folder  = args.ana_folder
 map_name    = args.map_name #'combined_15546_15557.map3d' 
 save_name   = args.save_name #'' 
 ldc_name    = args.ldc_name #'ldc1' 
 drop_nhits  = args.drop_nhits #3 #
 corr_type   = args.corr_type #"3D" #
+q_cut       = args.q_cut
 
 #just add ldc tag to saved file if ldc is not all
 if ldc_name != '*':
@@ -82,7 +96,7 @@ drop_cluster_dim = args.dimension #3
 source_path = '/mnt/netapp1/Store_next_data/NEXT100/data/{run_n}/hdf5/prod/*/*/sophronia/trigger2/'.format(run_n = run_number)
 data_path = source_path + '{}/*'.format(ldc_name)
 
-store_path  = '/mnt/lustre/scratch/nlsas/home/usc/ie/mpm/NEXT100/data/HE_ana_runs/' 
+store_path  = '/mnt/lustre/scratch/nlsas/home/usc/ie/mpm/NEXT100/data/{}/'.format(ana_folder)
 save_path_summary = store_path + '/{run_n}/'.format(run_n = run_number) + save_name
 map_path = store_path + map_name
 
@@ -167,7 +181,7 @@ def merge_NN_hits(hits: pd.DataFrame, same_peak: bool = True) -> pd.DataFrame:
     normal[["E","Ec"]] += corr
     return normal
 
-def drop_isolated_clusters(distance: List[float] = [16., 16., 4.], nhit: int = 3) -> Callable:
+def drop_isolated_clusters(distance: List[float] = [16., 16., 4.], nhit: int = 3, q_cut: float = 0) -> Callable:
     '''
     If len(distance) == 2, it will perform on X, Y
     If len(distance) == 3, it will perform on X, Y, Z
@@ -209,6 +223,9 @@ def drop_isolated_clusters(distance: List[float] = [16., 16., 4.], nhit: int = 3
             drop_inrange = drop_df.loc[inside_mask]
             if not drop_inrange.empty:
                 pass_df = pd.concat([pass_df, drop_inrange], axis=0)
+
+        # add Q cut just by marking hits with Q < q_thr as dropped hits, to redistribute their energy
+        pass_df.loc[pass_df.Q < q_thr, 'drop'] = True
 
         # at this point I have the df with the energy I should use (ener outsize Z range is deleted)
         # now we redistribute the energy of the dropped in range hits per slice using the charge
@@ -297,7 +314,7 @@ if drop_cluster_dim == 2:
 if drop_cluster_dim == 3:
     dist = [16., 16., 4.]
 
-dropper = drop_isolated_clusters(distance = dist, nhit = drop_nhits)
+dropper = drop_isolated_clusters(distance = dist, nhit = drop_nhits, q_thr = q_thr)
 
 # time_to_Z = get_df_to_z_converter(maps) if maps.t_evol is not None else identity
 

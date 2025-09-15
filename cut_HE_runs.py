@@ -14,6 +14,12 @@ def get_args():
         required=True,
         help="Run number to analyse, e.g. 15107")
     parser.add_argument(
+        "-a", "--a",
+        dest="ana_folder",
+        type=str,
+        default="HE_ana_runs",
+        help="Folder to save processed runs")
+    parser.add_argument(
         "-i", "--in_name",
         dest="input_name",
         type=str,
@@ -34,12 +40,13 @@ def get_args():
     return parser.parse_args()
 
 args        = get_args()
-run_number  = args.run_number 
+run_number  = args.run_number
+ana_folder  = args.ana_folder
 input_name  = args.input_name
 ldc_name    = args.ldc_name
 save_name   = args.save_name
 
-summary_path  = '/mnt/lustre/scratch/nlsas/home/usc/ie/mpm/NEXT100/data/HE_runs/' 
+summary_path  = '/mnt/lustre/scratch/nlsas/home/usc/ie/mpm/NEXT100/data/{}/'.format(ana_folder)
 summary_file = summary_path + '/{run_n}/'.format(run_n = run_number) + ldc_name + input_name
 
 save_path = summary_path + '/{run_n}/'.format(run_n = run_number) + save_name
