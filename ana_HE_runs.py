@@ -84,7 +84,7 @@ save_name   = args.save_name #''
 ldc_name    = args.ldc_name #'ldc1' 
 drop_nhits  = args.drop_nhits #3 #
 corr_type   = args.corr_type #"3D" #
-q_cut       = args.q_cut
+q_thr       = args.q_thr
 
 #just add ldc tag to saved file if ldc is not all
 if ldc_name != '*':
@@ -181,7 +181,7 @@ def merge_NN_hits(hits: pd.DataFrame, same_peak: bool = True) -> pd.DataFrame:
     normal[["E","Ec"]] += corr
     return normal
 
-def drop_isolated_clusters(distance: List[float] = [16., 16., 4.], nhit: int = 3, q_cut: float = 0) -> Callable:
+def drop_isolated_clusters(distance: List[float] = [16., 16., 4.], nhit: int = 3, q_thr: float = 0) -> Callable:
     '''
     If len(distance) == 2, it will perform on X, Y
     If len(distance) == 3, it will perform on X, Y, Z
